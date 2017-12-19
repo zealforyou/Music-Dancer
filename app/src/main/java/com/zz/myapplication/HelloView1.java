@@ -1,6 +1,7 @@
 package com.zz.myapplication;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -138,11 +139,13 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void initMedia() {
-        String path = "http://192.168.2.213:8080/mp3res/Big%20Z,Jackson%20Breit%20-%20Fool%20For%20You.mp3";
+        AssetFileDescriptor as = null;
         try {
-            mediaPlayer.setDataSource(path);
+            as = getContext().getAssets().openFd("Fool For You.mp3");
+            mediaPlayer.setDataSource(as.getFileDescriptor(),as.getStartOffset(),as.getLength());
             mediaPlayer.prepare();
             init = true;
+            as.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
