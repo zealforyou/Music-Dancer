@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "com.zz.myapplication"
+        applicationId "com.zz.music"
         minSdkVersion 15
         targetSdkVersion 26
         versionCode 1

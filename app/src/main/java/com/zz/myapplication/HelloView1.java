@@ -25,6 +25,7 @@ import java.io.IOException;
 public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
     public static int TYPE_REC = 0;
     public static int TYPE_LINE = 1;
+    public static int TYPE_CIRCLE= 2;
 
     private SurfaceHolder mHolder;
     private boolean init;
@@ -40,6 +41,8 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
     private int count = 10;
     private int type = TYPE_REC;
     private boolean isStop;
+    private String[] mp3 = {"Closer.mp3", "Fool For You.mp3", "Marry You.mp3"};
+    private int currentMusic = 0;
 
     public HelloView1(Context context) {
         super(context);
@@ -109,6 +112,7 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
             if (isStop) {
                 try {
                     mediaPlayer.prepare();
+                    isStop = false;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -130,8 +134,41 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
             setColor();
             mediaPlayer.stop();
             isStop = true;
-            mVisualizer.setEnabled(false);
+            start();
         }
+    }
+
+    public void switchMusic() {
+        if (mediaPlayer != null && switchMusic0()) {
+            mediaPlayer.start();
+            mVisualizer.setEnabled(true);
+        }
+    }
+
+    private boolean switchMusic0() {
+        if (mediaPlayer != null) {
+            mediaPlayer.reset();
+        }
+        AssetFileDescriptor as = null;
+        try {
+            as = getContext().getAssets().openFd(mp3[currentMusic % mp3.length]);
+            mediaPlayer.setDataSource(as.getFileDescriptor(), as.getStartOffset(), as.getLength());
+            mediaPlayer.prepare();
+            currentMusic++;
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (as != null) {
+                try {
+                    as.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+
     }
 
     public void setType(int type) {
@@ -139,16 +176,8 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void initMedia() {
-        AssetFileDescriptor as = null;
-        try {
-            as = getContext().getAssets().openFd("Fool For You.mp3");
-            mediaPlayer.setDataSource(as.getFileDescriptor(),as.getStartOffset(),as.getLength());
-            mediaPlayer.prepare();
-            init = true;
-            as.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        switchMusic0();
+        init = true;
     }
 
     @Override
@@ -182,10 +211,6 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
         mForePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         canvas.drawPaint(mForePaint);
         mForePaint.setXfermode(SRC);
-        if (mPoints == null || mPoints.length < mBytes.length * 4) {
-            //mPoints主要用来存储要画直线的4个坐标（每个点两个坐标，所以一条直线需要两个点，也就是4个坐标）
-            mPoints = new float[mBytes.length * 4];
-        }
         mRect.set(0, 0, getWidth(), getHeight());
         //以下的for循环将利用mBytes[i] mBytes[i+1] 这两个数据去生成4个坐标值，从而在刻画成两个坐标，来画线条
         int count = 10;
@@ -194,7 +219,8 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
             float left = wd * (2 * i + 1);
             float right = 2 * wd * (i + 1);
             //以下就是刻画第i+1个数据了，原理和刻画第i个一样
-            float top = mRect.height() - mRect.height() * Math.abs((byte) (mBytes[i + 1] + 128)) / 128;
+            float top = mRect.height() - mRect.height()
+                    * Math.abs((byte) (mBytes[mBytes.length / count * i] + 128)) / 128;
             float bottom = mRect.height();
             mForePaint.setColor(colors[i]);
             canvas.drawRect(left, top, right, bottom, mForePaint);
@@ -230,5 +256,31 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
         }
         canvas.drawLines(mPoints, mForePaint);
 
+    }
+
+    private void drawCircle(Canvas canvas, byte[] mBytes) {
+        if (mBytes == null) {
+            return;
+        }
+        mForePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        canvas.drawPaint(mForePaint);
+        mForePaint.setXfermode(SRC);
+        mRect.set(0, 0, getWidth(), getHeight());
+        //以下的for循环将利用mBytes[i] mBytes[i+1] 这两个数据去生成4个坐标值，从而在刻画成两个坐标，来画线条
+        int count = 3;
+        int space = 50;
+        float maxR = 1f * (mRect.width() - (count + 1) * space) / count / 2;
+        for (int i = 0; i < count; i++) {
+            float r = maxR * Math.abs((byte) (mBytes[mBytes.length / count * i] + 128)) / 128;
+            mForePaint.setColor(colors[i]);
+            float cx;
+            if (i == 1) {
+                cx = maxR + space;
+            } else {
+                cx = (i + 3) * maxR + (i + 1) * space;
+            }
+            float cy = mRect.height() / 2;
+            canvas.drawCircle(cx, cy, r, mForePaint);
+        }
     }
 }

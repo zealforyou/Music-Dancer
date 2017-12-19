@@ -17,8 +17,10 @@ class MainActivity : AppCompatActivity() {
         when (v.id) {
             R.id.btn_line -> helloView.setType(HelloView1.TYPE_LINE)
             R.id.btn_rec -> helloView.setType(HelloView1.TYPE_REC)
+            R.id.btn_rec -> helloView.setType(HelloView1.TYPE_CIRCLE)
             R.id.btn_start -> helloView.start()
             R.id.btn_reset -> helloView.reSet()
+            R.id.btn_switch -> helloView.switchMusic()
 
         }
     }
