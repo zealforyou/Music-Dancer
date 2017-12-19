@@ -25,7 +25,9 @@ import java.io.IOException;
 public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
     public static int TYPE_REC = 0;
     public static int TYPE_LINE = 1;
-    public static int TYPE_CIRCLE= 2;
+    public static int TYPE_CIRCLE = 2;
+    public static int TYPE_CIRCLE_LINE = 3;
+    public static int TYPE_CIRCLE_ONE = 4;
 
     private SurfaceHolder mHolder;
     private boolean init;
@@ -91,8 +93,14 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
                     Canvas canvas = mHolder.lockCanvas();
                     if (type == TYPE_REC) {
                         drawRec(canvas, waveform);
-                    } else {
+                    } else if (type == TYPE_LINE) {
                         drawLine(canvas, waveform);
+                    } else if (type == TYPE_CIRCLE_LINE) {
+                        drawCircleLine(canvas, waveform);
+                    } else if (type == TYPE_CIRCLE_ONE) {
+                        drawCircleOne(canvas, waveform);
+                    } else {
+                        drawCircle(canvas, waveform);
                     }
                     mHolder.unlockCanvasAndPost(canvas);
 
@@ -212,13 +220,11 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawPaint(mForePaint);
         mForePaint.setXfermode(SRC);
         mRect.set(0, 0, getWidth(), getHeight());
-        //以下的for循环将利用mBytes[i] mBytes[i+1] 这两个数据去生成4个坐标值，从而在刻画成两个坐标，来画线条
         int count = 10;
         float wd = 1f * mRect.width() / (2 * count + 1);
         for (int i = 0; i < count; i++) {
             float left = wd * (2 * i + 1);
             float right = 2 * wd * (i + 1);
-            //以下就是刻画第i+1个数据了，原理和刻画第i个一样
             float top = mRect.height() - mRect.height()
                     * Math.abs((byte) (mBytes[mBytes.length / count * i] + 128)) / 128;
             float bottom = mRect.height();
@@ -235,17 +241,11 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawPaint(mForePaint);
         mForePaint.setXfermode(SRC);
         if (mPoints == null || mPoints.length < mBytes.length * 4) {
-            //mPoints主要用来存储要画直线的4个坐标（每个点两个坐标，所以一条直线需要两个点，也就是4个坐标）
             mPoints = new float[mBytes.length * 4];
         }
         mRect.set(0, 0, getWidth(), getHeight());
-        //xOrdinate是x轴的总刻度，因为一次会传输过来1024个数据，每两个数据要画成一条直线
-        // ，所以x轴我们分成1023段。你要是觉的太多了，也可以像我一样除以2，看自己需求了。
         int xOrdinate = (mBytes.length - 1) / 20;
-        //以下的for循环将利用mBytes[i] mBytes[i+1] 这两个数据去生成4个坐标值，从而在刻画成两个坐标，来画线条
         for (int i = 0; i < xOrdinate; i++) {
-
-            //第i个点在总横轴上的坐标，
             mPoints[i * 4] = mRect.width() * i / xOrdinate;
             mPoints[i * 4 + 1] = mRect.height() / 2 + ((byte) (mBytes[i] + 128)) * (mRect.height() / 4) /
                     128;
@@ -266,7 +266,6 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawPaint(mForePaint);
         mForePaint.setXfermode(SRC);
         mRect.set(0, 0, getWidth(), getHeight());
-        //以下的for循环将利用mBytes[i] mBytes[i+1] 这两个数据去生成4个坐标值，从而在刻画成两个坐标，来画线条
         int count = 3;
         int space = 50;
         float maxR = 1f * (mRect.width() - (count + 1) * space) / count / 2;
@@ -274,11 +273,64 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
             float r = maxR * Math.abs((byte) (mBytes[mBytes.length / count * i] + 128)) / 128;
             mForePaint.setColor(colors[i]);
             float cx;
-            if (i == 1) {
+            if (i == 0) {
                 cx = maxR + space;
             } else {
-                cx = (i + 3) * maxR + (i + 1) * space;
+                cx = (1 + 2 * i) * maxR + (i + 1) * space;
             }
+            float cy = mRect.height() / 2;
+            canvas.drawCircle(cx, cy, r, mForePaint);
+        }
+    }
+
+    private void drawCircleLine(Canvas canvas, byte[] mBytes) {
+        if (mBytes == null) {
+            return;
+        }
+        mForePaint.setStyle(Paint.Style.STROKE);
+        mForePaint.setAntiAlias(true);
+        mForePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        canvas.drawPaint(mForePaint);
+        mForePaint.setXfermode(SRC);
+        mRect.set(0, 0, getWidth(), getHeight());
+        int circleCount = 3;
+        int space = 20;
+        float maxR = 1f * (mRect.width() - (circleCount + 1) * space) / circleCount / 2;
+        int lineCount = 10;
+        float rRadio = maxR / lineCount;
+        for (int i = 0; i < circleCount; i++) {
+            float r = maxR * Math.abs((byte) (mBytes[mBytes.length / circleCount * i] + 128)) / 128;
+            int currentCount = (int) (r / rRadio);
+            mForePaint.setColor(colors[i]);
+            float cx;
+            if (i == 0) {
+                cx = maxR + space;
+            } else {
+                cx = (1 + 2 * i) * maxR + (i + 1) * space;
+            }
+            float cy = mRect.height() / 2;
+            for (int j = 0; j < currentCount; j++) {
+                canvas.drawCircle(cx, cy, j * rRadio, mForePaint);
+            }
+        }
+        mForePaint.setStyle(Paint.Style.FILL);
+        mForePaint.setAntiAlias(false);
+    }
+
+    private void drawCircleOne(Canvas canvas, byte[] mBytes) {
+        if (mBytes == null) {
+            return;
+        }
+        mForePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        canvas.drawPaint(mForePaint);
+        mForePaint.setXfermode(SRC);
+        mRect.set(0, 0, getWidth(), getHeight());
+        int count = 10;
+        float maxR = Math.min(mRect.width(), mRect.height()) / 2f;
+        for (int i = 0; i < count; i++) {
+            float r = maxR * Math.abs((byte) (mBytes[mBytes.length / count * i] + 128)) / 128;
+            mForePaint.setColor(colors[i % colors.length]);
+            float cx = mRect.width() / 2;
             float cy = mRect.height() / 2;
             canvas.drawCircle(cx, cy, r, mForePaint);
         }

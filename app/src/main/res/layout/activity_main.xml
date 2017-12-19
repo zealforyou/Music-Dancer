@@ -76,6 +76,30 @@
         app:layout_constraintLeft_toRightOf="@id/btn_line"
         app:layout_constraintTop_toBottomOf="@+id/btn_start"
         android:textColor="#fff"/>
+    <TextView
+        android:id="@+id/btn_circle_line"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#aaaa44"
+        android:onClick="click"
+        android:padding="20dp"
+        android:text="圆线型"
+        android:layout_marginTop="10dp"
+        app:layout_constraintLeft_toRightOf="@id/btn_circle"
+        app:layout_constraintTop_toBottomOf="@+id/btn_start"
+        android:textColor="#fff"/>
+    <TextView
+        android:id="@+id/btn_circle_one"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#44ff66"
+        android:onClick="click"
+        android:padding="20dp"
+        android:text="叠圆"
+        android:layout_marginTop="10dp"
+        app:layout_constraintLeft_toRightOf="@id/btn_circle_line"
+        app:layout_constraintTop_toBottomOf="@+id/btn_start"
+        android:textColor="#fff"/>
     <com.zz.myapplication.HelloView1
         android:id="@+id/helloView"
         android:layout_width="match_parent"
