@@ -25,5 +25,7 @@ class MainActivity : AppCompatActivity() {
             R.id.btn_switch -> helloView.switchMusic()
 
         }
+
     }
+
 }
