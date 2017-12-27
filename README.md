@@ -2,4 +2,4 @@
 # Author-zz
 # fork
 效果图:
-![](gif1.gif)
+![](img/gif1.gif)
