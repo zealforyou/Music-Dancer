@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.media.MediaPlayer;
 import android.media.audiofx.Visualizer;
 import android.text.TextPaint;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -145,7 +146,26 @@ public class HelloView1 extends SurfaceView implements SurfaceHolder.Callback {
             start();
         }
     }
-
+    public void switchMusic(String url){
+        if (mediaPlayer != null&&!TextUtils.isEmpty(url)){
+            if (mediaPlayer != null) {
+                mediaPlayer.reset();
+            }
+            try {
+                mediaPlayer.setDataSource(url);
+                mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(MediaPlayer mp) {
+                        mediaPlayer.start();
+                        mVisualizer.setEnabled(true);
+                    }
+                });
+                mediaPlayer.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     public void switchMusic() {
         if (mediaPlayer != null && switchMusic0()) {
             mediaPlayer.start();
